@@ -6,3 +6,5 @@ __pycache__/
 web_site/node_modules/
 web_site/dist/
 .env
+
+data_engine/scraper.py

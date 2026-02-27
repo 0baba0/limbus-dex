@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>범용 이미지 수집기</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .scraper-panel { background: #222; padding: 3rem; border-radius: 8px; width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
+        h1 { color: #eab308; margin-top: 0; text-align: center; }
+        p { color: #aaa; text-align: center; margin-bottom: 2rem; line-height: 1.5; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #ccc; }
+        input[type="text"] { width: 100%; padding: 1rem; background: #1a1a1a; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 1.2rem; background: #eab308; color: #000; font-weight: bold; font-size: 1.1rem; border: none; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #ca8a04; }
+        .nav-link { display: block; text-align: center; margin-top: 1.5rem; color: #888; text-decoration: none; }
+        .nav-link:hover { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="scraper-panel">
+        <h1>🌐 범용 이미지 수집기</h1>
+        <p>웹사이트 주소(URL)를 입력하면 해당 페이지에 있는<br>모든 이미지를 긁어와 캐릭터 폴더에 임시 저장합니다.</p>
+        
+        <form action="/run_scraper" method="POST">
+            <div class="form-group">
+                <label>대상 웹사이트 주소 (URL)</label>
+                <input type="text" name="url" placeholder="https://example.com/..." required>
+            </div>
+            
+            <div class="form-group">
+                <label>저장될 파일명 접두사 (영어 권장)</label>
+                <input type="text" name="prefix" placeholder="(선택) 안 적으면 자동 이름 지정">
+            </div>
+
+            <button type="submit">이미지 싹쓸이 시작 ➔</button>
+        </form>
+        
+        <a href="/" class="nav-link">← 도감 데이터 입력창으로 돌아가기</a>
+    </div>
+</body>
+</html>

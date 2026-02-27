@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>도감 데이터 팩토리</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #fff; display: flex; height: 100vh; margin: 0; }
+        .image-panel { flex: 1; display: flex; justify-content: center; align-items: center; background: #1e1e1e; border-right: 2px solid #333; padding: 2rem; position: relative; }
+        .image-panel img { max-width: 100%; max-height: 90vh; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .form-panel { width: 500px; padding: 2rem; overflow-y: auto; background: #222; }
+        h2 { color: #eab308; border-bottom: 1px solid #444; padding-bottom: 1rem; margin-top: 0; }
+        .form-group { margin-bottom: 1.5rem; background: #2a2a2a; padding: 1rem; border-radius: 6px;}
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #ccc; font-size: 0.9rem;}
+        input[type="text"], input[type="date"], select { width: 100%; padding: 0.6rem; background: #1a1a1a; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        .checkbox-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+        button { padding: 1rem; color: #000; font-weight: bold; font-size: 1rem; border: none; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .btn-save { background: #eab308; flex: 2; }
+        .btn-save:hover { background: #ca8a04; }
+        .btn-delete { background: #dc2626; color: #fff; flex: 1; }
+        .btn-delete:hover { background: #b91c1c; }
+        .skill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .skill-inputs { display: flex; gap: 0.3rem; }
+        .kw-badge { display: inline-flex; align-items: center; background: #444; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; color: #fff; font-size: 0.85rem; margin-bottom: 0.3rem;}
+        .kw-badge input { margin-right: 0.4rem; }
+    </style>
+</head>
+<body>
+    <div class="image-panel">
+        <img src="/images/{{ image }}" alt="수감자 이미지">
+    </div>
+
+    <div class="form-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+                <a href="/scraper" style="color: #eab308; text-decoration: none; font-weight: bold; font-size: 0.9rem; margin-right: 1rem;">🔍 이미지 수집기 가기 ➔</a>
+                <a href="/cleanup" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 0.9rem;" onclick="return confirm('이미지 없이 남겨진 찌꺼기 데이터를 모두 삭제합니다. 진행할까요?');">🧹 무결성 검사(청소) 실행</a>
+            </div>
+            <div style="color: #888;">진행률: {{ page + 1 }} / {{ total }}</div>
+        </div>
+
+        <h2>데이터 입력</h2>
+        
+        {% set s = data.get('skills', {}) %}
+        {% set d = data.get('defense', {}) %}
+
+        <form action="/save" method="POST">
+            <input type="hidden" name="char_id" value="{{ char_id }}">
+            <input type="hidden" name="page" value="{{ page }}">
+            <input type="hidden" name="img_filename" value="{{ image }}">
+
+            <div class="form-group">
+                <label>수감자 이름</label>
+                <select name="characterName" required>
+                    <option value="">-- 선택 --</option>
+                    {% for name in ['이상', '파우스트', '돈키호테', '료슈', '뫼르소', '홍루', '히스클리프', '이스마엘', '로쟈', '싱클레어', '오티스', '그레고르'] %}
+                    <option value="{{ name }}" {% if data.characterName == name %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>인격 이름 (예: W사 정리요원)</label>
+                <input type="text" name="identityName" value="{{ data.identityName or '' }}" required>
+            </div>
+
+            <div class="form-group skill-grid">
+                <div>
+                    <label>인격 등급</label>
+                    <select name="grade" required>
+                        <option value="1" {% if data.grade == 1 %}selected{% endif %}>1성 (0)</option>
+                        <option value="2" {% if data.grade == 2 %}selected{% endif %}>2성 (00)</option>
+                        <option value="3" {% if data.grade == 3 %}selected{% endif %}>3성 (000)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>출시 날짜</label>
+                    <input type="date" name="releaseDate" value="{{ data.releaseDate or '' }}" required>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" name="isDefault" id="isDefault" {% if data.isDefault %}checked{% endif %}>
+                <label for="isDefault" style="color: #eab308; margin:0; cursor: pointer;">기본 인격으로 설정 (메인 노출)</label>
+            </div>
+
+            <div class="form-group">
+                <label>소속 (여러 개면 쉼표로 구분)</label>
+                <input type="text" name="affiliation" placeholder="예: 림버스 컴퍼니, W사" value="{{ data.affiliation | join(', ') if data.affiliation is iterable and data.affiliation is not string else (data.affiliation or '림버스 컴퍼니') }}">
+            </div>
+
+            <div class="form-group">
+                <label>키워드 선택 및 입력</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.8rem;">
+                    {% set common_keywords = ['화상', '출혈', '진동', '파열', '침잠', '호흡', '충전'] %}
+                    {% for kw in common_keywords %}
+                    <label class="kw-badge">
+                        <input type="checkbox" name="keywords_check" value="{{ kw }}" {% if data.keywords and kw in data.keywords %}checked{% endif %}> {{ kw }}
+                    </label>
+                    {% endfor %}
+                </div>
+                
+                {% set manual_kws = [] %}
+                {% if data.keywords %}
+                    {% for k in data.keywords %}
+                        {% if k not in common_keywords %}
+                            {% set _ = manual_kws.append(k) %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <input type="text" name="manual_keywords" placeholder="특수 키워드 직접 입력 (쉼표로 구분)" value="{{ manual_kws | join(', ') }}">
+            </div>
+
+            <div class="form-group">
+                <label>수비 스킬</label>
+                <div class="skill-inputs">
+                    <select name="defense_type">
+                        <option value="가드" {% if d.get('type') == '가드' %}selected{% endif %}>가드</option>
+                        <option value="회피" {% if d.get('type') == '회피' %}selected{% endif %}>회피</option>
+                        <option value="반격" {% if d.get('type') == '반격' %}selected{% endif %}>반격</option>
+                    </select>
+                    <select name="defense_attr">
+                        {% for attr in ['없음', '분노', '색욕', '나태', '탐식', '우울', '오만', '질투'] %}
+                        <option value="{{ attr }}" {% if d.get('attribute') == attr %}selected{% endif %}>{{ attr }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="color: #eab308; margin-bottom: 1rem;">스킬 정보 (유형 + 죄악 속성)</label>
+                <div class="skill-grid">
+                    {% for i in range(1, 4) %}
+                    {% set sk = s.get('skill' ~ i, {}) %}
+                    <div>
+                        <label>{{ i }}스킬</label>
+                        <div class="skill-inputs">
+                            <select name="skill{{ i }}_type">
+                                {% for type in ['참격', '관통', '타격'] %}
+                                <option value="{{ type }}" {% if sk.get('type') == type %}selected{% endif %}>{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="skill{{ i }}_attr">
+                                {% for attr in ['분노', '색욕', '나태', '탐식', '우울', '오만', '질투'] %}
+                                <option value="{{ attr }}" {% if sk.get('attribute') == attr %}selected{% endif %}>{{ attr }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    {% set sp = s.get('special' ~ i, {}) %}
+                    <div>
+                        <label>특수 {{ i }}스킬</label>
+                        <div class="skill-inputs">
+                            <select name="special{{ i }}_type">
+                                {% for type in ['없음', '참격', '관통', '타격'] %}
+                                <option value="{{ type }}" {% if sp.get('type') == type %}selected{% endif %}>{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="special{{ i }}_attr">
+                                {% for attr in ['없음', '분노', '색욕', '나태', '탐식', '우울', '오만', '질투'] %}
+                                <option value="{{ attr }}" {% if sp.get('attribute') == attr %}selected{% endif %}>{{ attr }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn-save">저장 및 다음 이미지 ➔</button>
+                <button type="button" class="btn-delete" onclick="if(confirm('정말 이 이미지를 삭제하시겠습니까? (복구 불가)')) document.getElementById('delete-form').submit();">삭제 🗑️</button>
+            </div>
+        </form>
+
+        <form id="delete-form" action="/delete" method="POST" style="display:none;">
+            <input type="hidden" name="img_filename" value="{{ image }}">
+            <input type="hidden" name="char_id" value="{{ char_id }}">
+            <input type="hidden" name="page" value="{{ page }}">
+        </form>
+    </div>
+</body>
+</html>

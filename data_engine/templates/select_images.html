@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>수집된 이미지 선택</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #fff; padding: 2rem; margin: 0; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        h1 { color: #eab308; margin-bottom: 0.5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+        .image-card { background: #222; padding: 0.5rem; border-radius: 8px; text-align: center; border: 2px solid transparent; transition: 0.2s; cursor: pointer; }
+        .image-card:hover { border-color: #555; }
+        .image-card.selected { border-color: #eab308; background: #3a2e00; }
+        .image-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; pointer-events: none; }
+        .checkbox-container { margin-top: 0.5rem; }
+        .action-bar { position: sticky; bottom: 0; background: rgba(0,0,0,0.9); padding: 1rem; text-align: center; border-top: 1px solid #333; margin-top: 2rem; z-index: 100; }
+        button { padding: 1rem 2rem; background: #eab308; color: #000; font-weight: bold; font-size: 1.1rem; border: none; border-radius: 4px; cursor: pointer; transition: 0.2s; margin: 0 0.5rem; }
+        button:hover { background: #ca8a04; }
+        .btn-outline { background: transparent; color: #eab308; border: 2px solid #eab308; }
+        .btn-outline:hover { background: #eab308; color: #000; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>✨ 새로 수집된 이미지 (총 {{ images|length }}장)</h1>
+        <p><b>도감에 추가할 진짜 이미지만 선택</b>하고 저장 버튼을 누르세요.<br>선택하지 않은 이미지는 자동 폐기됩니다.</p>
+    </div>
+
+    <form action="/save_selected_images" method="POST" id="selection-form">
+        <div class="grid">
+            {% for img in images %}
+            <div class="image-card" onclick="toggleCheckbox('{{ img }}')">
+                <img src="/temp_images/{{ img }}" alt="scraped">
+                <div class="checkbox-container">
+                    <input type="checkbox" name="selected_images" value="{{ img }}" id="chk_{{ img }}" style="transform: scale(1.5);">
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888; background: #222; border-radius: 8px;">
+                새로 건질만한 이미지가 없습니다.
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="action-bar">
+            <button type="button" class="btn-outline" onclick="selectAll()">전체 선택 / 해제</button>
+            <button type="submit">선택한 이미지만 본진으로 옮기기 ➔</button>
+        </div>
+    </form>
+
+    {% if duplicates %}
+    <hr style="border-color: #333; margin: 4rem 0 2rem 0;">
+    <div class="header" style="opacity: 0.7;">
+        <h2 style="color: #ef4444;">⚠️ 중복 처리된 이미지 (총 {{ duplicates|length }}장)</h2>
+        <p>본진에 이미 완벽하게 동일한 이미지가 있어서 자동으로 걸러졌습니다. (선택할 필요 없음)</p>
+    </div>
+    <div class="grid" style="opacity: 0.5;">
+        {% for dup in duplicates %}
+        <div class="image-card" style="cursor: default;">
+            <img src="/temp_images/{{ dup.temp_name }}" alt="duplicate">
+            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #aaa; word-break: break-all;">
+                이미 저장된 원본:<br>{{ dup.original_name }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div style="height: 100px;"></div> {% endif %}
+
+    <script>
+        function toggleCheckbox(imgId) {
+            const checkbox = document.getElementById('chk_' + imgId);
+            const card = checkbox.closest('.image-card');
+            checkbox.checked = !checkbox.checked;
+            if(checkbox.checked) { card.classList.add('selected'); } 
+            else { card.classList.remove('selected'); }
+        }
+
+        let allSelected = false;
+        function selectAll() {
+            allSelected = !allSelected;
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = allSelected;
+                const card = cb.closest('.image-card');
+                if(allSelected) { card.classList.add('selected'); }
+                else { card.classList.remove('selected'); }
+            });
+        }
+    </script>
+</body>
+</html>
