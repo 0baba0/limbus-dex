@@ -1,0 +1,8 @@
+# Python 무시 파일
+data_engine/venv/
+__pycache__/
+
+# Node.js 무시 파일
+web_site/node_modules/
+web_site/dist/
+.env
