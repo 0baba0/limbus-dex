@@ -5,6 +5,7 @@
   "isDefault": false,
   "grade": 2,
   "releaseDate": "2023-08-10",
+  "imagePosition": "center",
   "keywords": [],
   "skills": {
     "skill1": {
@@ -40,5 +41,5 @@
     "해결사",
     "츠바이 협회"
   ],
-  "image_url": "/images/characters/auto_img_1772207244_6.jpg"
+  "image_url": "/images/characters/auto_img_1772207244_6.webp?v=1772243476"
 }

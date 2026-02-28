@@ -1,0 +1,9 @@
+데이터 수집기
+
+cd data_engine
+python admin.py
+
+로컬 서버
+
+cd web_site
+npm run dev

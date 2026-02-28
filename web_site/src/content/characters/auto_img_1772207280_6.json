@@ -5,9 +5,10 @@
   "isDefault": false,
   "grade": 3,
   "releaseDate": "2025-10-09",
+  "imagePosition": "center",
   "keywords": [
-    "호흡",
-    "출혈"
+    "출혈",
+    "호흡"
   ],
   "skills": {
     "skill1": {
@@ -43,5 +44,5 @@
     "해결사",
     "시 협회"
   ],
-  "image_url": "/images/characters/auto_img_1772207280_6.jpg"
+  "image_url": "/images/characters/auto_img_1772207280_6.webp?v=1772243481"
 }

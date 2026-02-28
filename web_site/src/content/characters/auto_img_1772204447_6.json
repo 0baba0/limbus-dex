@@ -5,6 +5,7 @@
   "isDefault": false,
   "grade": 3,
   "releaseDate": "2023-11-09",
+  "imagePosition": "center",
   "keywords": [
     "충전"
   ],
@@ -41,5 +42,5 @@
   "affiliation": [
     "W사"
   ],
-  "image_url": "/images/characters/auto_img_1772204447_6.jpg"
+  "image_url": "/images/characters/auto_img_1772204447_6.webp?v=1772243458"
 }

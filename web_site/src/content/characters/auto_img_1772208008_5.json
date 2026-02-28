@@ -5,6 +5,7 @@
   "isDefault": true,
   "grade": 1,
   "releaseDate": "2023-02-27",
+  "imagePosition": "center",
   "keywords": [
     "출혈"
   ],
@@ -42,5 +43,5 @@
     "림버스 컴퍼니",
     "LCB"
   ],
-  "image_url": "/images/characters/auto_img_1772208008_5.jpg"
+  "image_url": "/images/characters/auto_img_1772208008_5.webp?v=1772243483"
 }

@@ -5,6 +5,7 @@
   "isDefault": false,
   "grade": 3,
   "releaseDate": "2023-02-27",
+  "imagePosition": "center",
   "keywords": [
     "호흡"
   ],
@@ -42,5 +43,5 @@
     "조직",
     "검계"
   ],
-  "image_url": "/images/characters/auto_img_1772204425_6.jpg"
+  "image_url": "/images/characters/auto_img_1772204425_6.webp?v=1772243455"
 }

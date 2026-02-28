@@ -1,4 +1,6 @@
 import os
+import time # 시간을 가져오기 위해 추가
+from PIL import Image # 이미지 변환을 위해 추가
 import json
 import time
 import shutil
@@ -44,9 +46,9 @@ def serve_temp_image(filename):
 # ==========================================
 @app.route('/')
 def index():
-    images = sorted([f for f in os.listdir(IMAGE_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
+    # .webp 파일들도 팩토리 화면에 띄웁니다.
+    images = sorted([f for f in os.listdir(IMAGE_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))])
     
-    # URL에 page 번호가 없을 때 (스마트 이어하기)
     if 'page' not in request.args:
         target_page = len(images) 
         for i, img in enumerate(images):
@@ -56,12 +58,10 @@ def index():
                 break
         return redirect(url_for('index', page=target_page))
 
-    # 🚀 빈칸이나 이상한 문자가 들어오면 무조건 0(처음)으로 처리하는 방어 로직
     page_str = request.args.get('page', '0')
     page = int(page_str) if page_str.isdigit() else 0
     if page < 0: page = 0
     
-    # 🚀 신규: 드롭다운 검색을 위한 전체 데이터 목록 생성
     search_list = []
     for i, img in enumerate(images):
         char_id = os.path.splitext(img)[0]
@@ -74,7 +74,6 @@ def index():
             display_name = "(미입력 데이터)"
         search_list.append({"page": i, "name": display_name})
 
-    # 모든 작업 완료 시
     if page >= len(images):
         return f"""
         <div style="font-family:sans-serif; background:#121212; color:#fff; padding:3rem; text-align:center;">
@@ -95,7 +94,6 @@ def index():
         with open(json_path, 'r', encoding='utf-8') as f:
             existing_data = json.load(f)
             
-    # search_list를 화면으로 같이 넘겨줍니다
     return render_template('index.html', image=current_image, char_id=char_id, page=page, total=len(images), data=existing_data, search_list=search_list)
 
 @app.route('/save', methods=['POST'])
@@ -104,6 +102,30 @@ def save():
     page = int(request.form['page'])
     img_filename = request.form['img_filename']
     
+    # 🚀 --- [안전한 이미지 변환 및 캐시 꼬리표 로직] --- 🚀
+    IMAGE_DIR = '../web_site/public/images/characters' 
+    old_filepath = os.path.join(IMAGE_DIR, img_filename)
+    
+    # 이름은 무조건 원본과 똑같이 유지합니다! (예: 파우스트.webp) - 데이터 증발 방지
+    base_name = os.path.splitext(img_filename)[0]
+    final_filename = f"{base_name}.webp"
+    new_filepath = os.path.join(IMAGE_DIR, final_filename)
+
+    if os.path.exists(old_filepath) and not img_filename.lower().endswith('.webp'):
+        try:
+            img = Image.open(old_filepath)
+            img.save(new_filepath, 'webp', quality=85)
+            os.remove(old_filepath)
+            print(f"✅ 이미지 압축 완료: {img_filename} ➔ {final_filename}")
+        except Exception as e:
+            print(f"❌ 변환 실패: {e}")
+            final_filename = img_filename
+
+    # 브라우저를 속이기 위한 꼬리표(쿼리 스트링)를 파일 이름이 아닌 URL 문자열 끝에만 살짝 붙입니다!
+    timestamp = int(time.time())
+    cache_busting_url = f"/images/characters/{final_filename}?v={timestamp}"
+    # 🚀 --- [로직 끝] --- 🚀
+
     affiliation_list = [a.strip() for a in request.form['affiliation'].split(',') if a.strip()]
     checked_keywords = request.form.getlist('keywords_check')
     manual_keywords_str = request.form.get('manual_keywords', '')
@@ -129,7 +151,9 @@ def save():
         },
         "defense": {"type": request.form['defense_type'], "attribute": request.form['defense_attr']},
         "affiliation": affiliation_list if affiliation_list else ["림버스 컴퍼니"],
-        "image_url": f"/images/characters/{img_filename}"
+        
+        # 🚀 JSON 데이터 안의 주소에만 꼬리표를 달아서 브라우저 캐시를 무력화합니다!
+        "image_url": cache_busting_url
     }
     
     json_path = os.path.join(JSON_DIR, f"{char_id}.json")
@@ -256,15 +280,13 @@ def save_selected_images():
     
 @app.route('/cleanup')
 def cleanup_orphans():
-    # 1. 현재 존재하는 진짜 이미지들의 ID(이름) 목록을 가져옵니다.
-    valid_ids = [os.path.splitext(f)[0] for f in os.listdir(IMAGE_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-    
+    # 이제 .webp도 완벽하게 인식합니다.
+    valid_ids = [os.path.splitext(f)[0] for f in os.listdir(IMAGE_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))]
     cleaned_count = 0
-    # 2. JSON 폴더를 싹 뒤집니다.
     for j_file in os.listdir(JSON_DIR):
         if j_file.endswith('.json'):
             char_id = os.path.splitext(j_file)[0]
-            # 3. 만약 JSON 이름이 진짜 이미지 목록에 없다면? -> 고아 데이터이므로 삭제!
+            # 파일 이름이 1:1로 일치하지 않으면 삭제 (이제 짝꿍이 완벽히 맞으므로 정상 데이터는 절대 안 지워집니다)
             if char_id not in valid_ids:
                 os.remove(os.path.join(JSON_DIR, j_file))
                 cleaned_count += 1

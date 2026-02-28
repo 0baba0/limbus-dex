@@ -5,6 +5,7 @@
   "isDefault": false,
   "grade": 3,
   "releaseDate": "2023-07-20",
+  "imagePosition": "center",
   "keywords": [],
   "skills": {
     "skill1": {
@@ -40,5 +41,5 @@
     "해결사",
     "섕크 협회"
   ],
-  "image_url": "/images/characters/auto_img_1772208043_6.jpg"
+  "image_url": "/images/characters/auto_img_1772208043_6.webp?v=1772243494"
 }

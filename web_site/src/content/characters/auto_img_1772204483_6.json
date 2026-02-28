@@ -5,6 +5,7 @@
   "isDefault": false,
   "grade": 3,
   "releaseDate": "2025-02-20",
+  "imagePosition": "center",
   "keywords": [
     "화상"
   ],
@@ -42,5 +43,5 @@
     "해결사",
     "리우 협회"
   ],
-  "image_url": "/images/characters/auto_img_1772204483_6.jpg"
+  "image_url": "/images/characters/auto_img_1772204483_6.webp?v=1772243471"
 }

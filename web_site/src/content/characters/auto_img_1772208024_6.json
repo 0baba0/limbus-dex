@@ -5,6 +5,7 @@
   "isDefault": false,
   "grade": 2,
   "releaseDate": "2023-02-27",
+  "imagePosition": "center",
   "keywords": [
     "호흡"
   ],
@@ -42,5 +43,5 @@
     "해결사",
     "시 협회"
   ],
-  "image_url": "/images/characters/auto_img_1772208024_6.jpg"
+  "image_url": "/images/characters/auto_img_1772208024_6.webp?v=1772243486"
 }
